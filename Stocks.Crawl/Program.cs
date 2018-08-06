@@ -1,13 +1,10 @@
 ﻿using CsQuery;
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CsQuery.ExtensionMethods;
 
 namespace Stocks.Crawl
 {
@@ -105,7 +102,7 @@ namespace Stocks.Crawl
 
         public static double? FormatDioniceNumbers(this IDomElement dom)
         {
-            string s = (dom.InnerText != string.Empty ? dom.InnerText : dom[0].InnerText).Replace(".", "").Replace("%", "");
+            var s = (dom.InnerText != string.Empty ? dom.InnerText : dom[0].InnerText).Replace(".", "").Replace("%", "");
             return s == "&nbsp;" ? null : (double?)double.Parse(s);
         }
     }
@@ -114,6 +111,7 @@ namespace Stocks.Crawl
     {
         public DnevnoTrgovanjeDrustvo[] Drustvo { get; set; }
         public int Optimizam { get; set; }
+        public DateTime Date { get; set; }
     }
 
     public class DnevnoTrgovanjeDrustvo
@@ -137,5 +135,11 @@ namespace Stocks.Crawl
         public string Ime { get; set; }
         public string Oznaka { get; set; }
         public string Href { get; set; }
+        public List<Dionicar> Dionicari { get; set; }
+    }
+
+    public class Dionicar
+    {
+        public string Name { get; set; }
     }
 }
