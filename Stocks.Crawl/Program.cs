@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CsQuery.ExtensionMethods.Internal;
 
 namespace Stocks.Crawl
 {
@@ -15,7 +16,9 @@ namespace Stocks.Crawl
 
         public static async Task Main(string[] args)
         {
-            var s = await GetDnevnoTrgovanje();
+            var s = new Crawler();
+            var f = s.GetAllDionickaDrustva();
+
             Console.ReadLine();
         }
 
@@ -102,8 +105,8 @@ namespace Stocks.Crawl
 
         public static double? FormatDioniceNumbers(this IDomElement dom)
         {
-            var s = (dom.InnerText != string.Empty ? dom.InnerText : dom[0].InnerText).Replace(".", "").Replace("%", "");
-            return s == "&nbsp;" ? null : (double?)double.Parse(s);
+            var s = dom.InnerText.Replace(".", "").Replace("%", "").Replace("\n", "").Replace("-", "").Replace("OTC", "");
+            return (s == "&nbsp;" || s == "Blok" || s.IsNullOrEmpty()) ? null : (double?)double.Parse(s);
         }
     }
 
