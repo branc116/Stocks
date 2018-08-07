@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Stocks.Crawl.Models;
 
 namespace Stocks.Crawl
 {
