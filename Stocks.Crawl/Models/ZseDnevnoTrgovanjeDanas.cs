@@ -13,6 +13,7 @@ namespace Stocks.Crawl.Models
         public int? Promet { get; set; }
         public double? Najniza { get; set; }
         public double? Najvisa { get; set; }
+        public double? Zakljucna { get; set; }
         public string Simbol { get; set; }
     }
 }
