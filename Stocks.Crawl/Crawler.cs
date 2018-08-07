@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using CsQuery;
@@ -27,7 +28,27 @@ namespace Stocks.Crawl
 
         public List<ZseDnevnoTrgovanjeDanas> GetDnevnoTrgovanjeDanas()
         {
-            throw new NotImplementedException();
+            var requestUrl = "http://www.zse.hr/default.aspx?id=26521";
+            CQ html = Client.GetAsync(requestUrl).Result.Content.ReadAsStringAsync().Result;
+            var rows = html["#dnevna_trgovanja > tbody > tr[tip='D']"].Elements.ToArray();
+            return rows.Select(i =>
+            {
+                var columns = i.ChildElements.ToList();
+                return new ZseDnevnoTrgovanjeDanas
+                {
+                    Datum = DateTime.Now,
+                    Simbol = columns[0].FirstElementChild.InnerText,
+                    Zakljucna = columns[2].FormatDioniceNumbers(),
+                    Zadnja = columns[3].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Promjena = columns[4].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Prva = columns[5].FormatDioniceNumbers(),
+                    Najvisa = columns[6].FormatDioniceNumbers(),
+                    Najniza = columns[7].FormatDioniceNumbers(),
+                    Prosjecna = columns[8].FormatDioniceNumbers(),
+                    Kolicina = (int)columns[9].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Promet = (int)columns[10].FormatDioniceNumbers().GetValueOrDefault(0)
+                };
+            }).ToList();
         }
 
         public DionickoDrustvo GetDionickoDrustvo(int id)
@@ -63,13 +84,11 @@ namespace Stocks.Crawl
                 Ime = i.ChildElements.ElementAt(1).InnerText,
                 Postotak = double.Parse(i.ChildElements.ElementAt(2).InnerText)
             }).ToList();
-            var j = 0;
             var povijest = html["#dnevna_trgovanja > tbody > tr"].Elements.Select(i =>
                 {
                     var listi = i.ChildElements.ToList();
                     try
                     {
-                        Console.WriteLine(j++);
                         var dateTime = DateTime.Parse(listi[1].InnerText);
                         var formatDioniceNumbers = listi[2].FormatDioniceNumbers();
                         var dioniceNumbers = listi[3].FormatDioniceNumbers();

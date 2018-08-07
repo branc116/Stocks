@@ -17,7 +17,7 @@ namespace Stocks.Crawl
         public static async Task Main(string[] args)
         {
             var s = new Crawler();
-            var f = s.GetAllDionickaDrustva();
+            var f = s.GetDnevnoTrgovanjeDanas();
 
             Console.ReadLine();
         }

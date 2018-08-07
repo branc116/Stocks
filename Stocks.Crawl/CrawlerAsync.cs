@@ -24,13 +24,33 @@ namespace Stocks.Crawl
             var requestUrl = $"http://www.zse.hr/default.aspx?id=26474";
             CQ html = await (await Client.GetAsync(requestUrl)).Content.ReadAsStringAsync();
             var id = html["#dnevna_trgovanja > tbody > tr > td > strong > a"].Elements.ToArray();
-            var tasks = id.Select(async i => await GetDionickoDrustvo(int.Parse(i.Attributes["href"].Split("=").Last()))).ToList();
+            var tasks = id.Select(async i => await GetDionickoDrustvo(int.Parse(i.Attributes["href"].Split("=").Last())).ConfigureAwait(false)).ToList();
             return (await Task.WhenAll(tasks)).ToList();
         }
 
-        public Task<List<ZseDnevnoTrgovanjeDanas>> GetDnevnoTrgovanjeDanas()
+        public async Task<List<ZseDnevnoTrgovanjeDanas>> GetDnevnoTrgovanjeDanas()
         {
-            throw new NotImplementedException();
+            var requestUrl = "http://www.zse.hr/default.aspx?id=26521";
+            CQ html = await (await Client.GetAsync(requestUrl)).Content.ReadAsStringAsync();
+            var rows = html["#dnevna_trgovanja > tbody > tr[tip='D']"].Elements.ToArray();
+            return rows.Select(i =>
+            {
+                var columns = i.ChildElements.ToList();
+                return new ZseDnevnoTrgovanjeDanas
+                {
+                    Datum = DateTime.Now,
+                    Simbol = columns[0].FirstElementChild.InnerText,
+                    Zakljucna = columns[2].FormatDioniceNumbers(),
+                    Zadnja = columns[3].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Promjena = columns[4].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Prva = columns[5].FormatDioniceNumbers(),
+                    Najvisa = columns[6].FormatDioniceNumbers(),
+                    Najniza = columns[7].FormatDioniceNumbers(),
+                    Prosjecna = columns[8].FormatDioniceNumbers(),
+                    Kolicina = (int)columns[9].FormatDioniceNumbers().GetValueOrDefault(0),
+                    Promet = (int)columns[10].FormatDioniceNumbers().GetValueOrDefault(0)
+                };
+            }).ToList();
         }
 
         public async Task<DionickoDrustvo> GetDionickoDrustvo(int id)
@@ -46,8 +66,8 @@ namespace Stocks.Crawl
                         new KeyValuePair<string, string>("DateTo",
                             DateTime.Now.ToShortDateString()
                                 .TrimEnd('.'))
-                    }))
-                ).Content.ReadAsStringAsync();
+                    })).ConfigureAwait(false)
+                ).Content.ReadAsStringAsync().ConfigureAwait(false);
             var oznaka = html["#t10007 > div > table:nth-child(1) > tbody > tr > td.c1 > h3"].FirstElement().InnerText;
             var ime = html["#t10007 > div > table:nth-child(1) > tbody > tr > td.c1"].FirstElement()
                 .InnerHTML.Split("<br />").ElementAt(1);
@@ -65,13 +85,11 @@ namespace Stocks.Crawl
                 Ime = i.ChildElements.ElementAt(1).InnerText,
                 Postotak = double.Parse(i.ChildElements.ElementAt(2).InnerText)
             }).ToList();
-            var j = 0;
             var povijest = html["#dnevna_trgovanja > tbody > tr"].Elements.Select(i =>
             {
                 var listi = i.ChildElements.ToList();
                 try
                 {
-                    Console.WriteLine(j++);
                     var dateTime = DateTime.Parse(listi[1].InnerText);
                     var formatDioniceNumbers = listi[2].FormatDioniceNumbers();
                     var dioniceNumbers = listi[3].FormatDioniceNumbers();
