@@ -1,12 +1,16 @@
-﻿using System;
+﻿using Stocks.Crawl;
+using System;
+using System.Threading.Tasks;
 
 namespace Stocks.BL
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var context = new ZseRepository(new ZseApiAsync(), new Mapper(), new Data.Model.Zse.ZseContext());
+            await context.SeedAsync();
         }
+
     }
 }
