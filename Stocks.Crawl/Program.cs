@@ -106,7 +106,11 @@ namespace Stocks.Crawl
         public static double? FormatDioniceNumbers(this IDomElement dom)
         {
             var s = dom.InnerText.Replace(".", "").Replace("%", "").Replace("\n", "").Replace("-", "").Replace("OTC", "");
-            return (s == "&nbsp;" || s == "Blok" || s.IsNullOrEmpty()) ? null : (double?)double.Parse(s);
+            return (s == "&nbsp;" || s == "Blok" || s.IsNullOrEmpty()) ? null : (double?)double.Parse(s, System.Globalization.CultureInfo.GetCultureInfo("hr"));
+        }
+        public static string FixString(this string s)
+        {
+            return System.Net.WebUtility.HtmlDecode(s);
         }
     }
 

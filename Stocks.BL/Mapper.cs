@@ -1,4 +1,4 @@
-﻿using Stocks.Data.Model.Zse;
+﻿using Stocks.Data.Models.Zse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,45 +8,53 @@ namespace Stocks.BL
 {
     public class Mapper
     {
-        public List<DionickoDrustvo> Map(List<Crawl.DionickoDrustvo> dionickoDrustvos)
+        public List<DionickoDrustvo> Map(List<Crawl.Models.DionickoDrustvo> dionickoDrustvos)
         {
-            return dionickoDrustvos.Select(i => new DionickoDrustvo
+            return dionickoDrustvos.Select(Map).ToList();
+        }
+        public DionickoDrustvo Map(Crawl.Models.DionickoDrustvo drustvo)
+        {
+            return new DionickoDrustvo
             {
-                DionicarDionickoDrustvo = i.Dionicars.Select(j => new DionicarDionickoDrustvo
+                DionicarDionickoDrustvo = drustvo.Dionicars.Select(j => new DionicarDionickoDrustvo
                 {
-                    Datum = i.DatumUpita,
-                    IdDd = i.Id,
+                    Datum = drustvo.DatumUpita,
+                    IdDd = drustvo.Id,
                     IdDionicar = 0,
-                    PostoDionica = (decimal)j.Postotak
+                    PostoDionica = (decimal)j.Postotak,
+                    IdDionicarNavigation = new Dionicar
+                    {
+                        NazivDionicar = j.Ime
+                    }
                 }).ToList(),
                 DionickoDrustvoKategorijaLikvidnosti = new List<DionickoDrustvoKategorijaLikvidnosti>
                  {
                      new DionickoDrustvoKategorijaLikvidnosti
                      {
-                         Datum = i.DatumUpita,
-                         IdDd = i.Id,
-                         Vrijednost = (short)i.Likvidnost
+                         Datum = drustvo.DatumUpita,
+                         IdDd = drustvo.Id,
+                         Vrijednost = (short)drustvo.Likvidnost
                      }
                  },
-                IdDd = i.Id,
+                IdDd = drustvo.Id,
                 DionickoDrustvoDjelatnost = new DionickoDrustvoDjelatnost
                 {
-                    IdDd = i.Id,
+                    IdDd = drustvo.Id,
                     IdDjelatnostNavigation = new Djelatnost
                     {
                         IdSektorNavigation = new Sektor
                         {
-                            OznSektor = i.Sektor
+                            OznSektor = drustvo.Sektor
                         },
-                        NazivDjelatnost = i.NazivDjelatnost,
-                        OznDjelatnost = i.Djelatnost
+                        NazivDjelatnost = drustvo.NazivDjelatnost,
+                        OznDjelatnost = drustvo.Djelatnost
                     }
                 },
-                DnevnoTrgovanje = i.DnevnaTrgovanja.Select(j => new DnevnoTrgovanje
+                DnevnoTrgovanje = drustvo.DnevnaTrgovanja.Distinct(new Crawl.Models.ZseDnevnoTrgovanjeComparer()).Select(j => new DnevnoTrgovanje
                 {
                     BrojTransakcija = j.BrojTransakcija,
                     Datum = j.Datum,
-                    IdDd = i.Id,
+                    IdDd = drustvo.Id,
                     Najniza = (decimal?)j.Najniza,
                     Najvisa = (decimal?)j.Najvisa,
                     Promet = j.Promet,
@@ -55,9 +63,10 @@ namespace Stocks.BL
                     Prva = (decimal?)j.Prva,
                     Zadnja = (decimal?)j.Zadnja
                 }).ToList(),
-                ImeDd = i.Ime,
-                OznakaDd = i.Oznaka
-            }).ToList();
+                ImeDd = drustvo.Ime,
+                OznakaDd = drustvo.Oznaka
+            };
         }
     }
+
 }

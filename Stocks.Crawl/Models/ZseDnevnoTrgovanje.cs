@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Stocks.Crawl.Models
 {
@@ -14,5 +16,17 @@ namespace Stocks.Crawl.Models
         public double? Najniza { get; set; }
         public double? Najvisa { get; set; }
         public int BrojTransakcija { get; set; }
+    }
+
+    public class ZseDnevnoTrgovanjeComparer : IEqualityComparer<ZseDnevnoTrgovanje>
+    {
+        public bool Equals(ZseDnevnoTrgovanje x, ZseDnevnoTrgovanje y)
+        {
+            return x.Datum.Equals(y.Datum);
+        }
+        public int GetHashCode(ZseDnevnoTrgovanje obj)
+        {
+            return obj.Datum.GetHashCode();
+        }
     }
 }

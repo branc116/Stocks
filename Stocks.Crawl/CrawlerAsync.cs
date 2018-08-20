@@ -62,17 +62,30 @@ namespace Stocks.Crawl
             var razred = int.Parse(html["#t10007 > div > table:nth-child(4) > tbody > tr > td:nth-child(1) > table.dioniceSheet1 > tbody > tr:nth-child(2) > td.c2 > a"].FirstElement().InnerText);
             var dionicari = html["#t49183 > div > table > tbody > tr"].Elements.Select(i => new ZseDionicar
             {
-                Ime = i.ChildElements.ElementAt(1).InnerText,
-                Postotak = double.Parse(i.ChildElements.ElementAt(2).InnerText)
+                Ime = i.ChildElements.ElementAt(1).InnerText.FixString(),
+                Postotak = i.ChildElements.ElementAt(2).FormatDioniceNumbers().GetValueOrDefault(0)
             }).ToList();
+            if (dionicari.Any(i => dionicari.Count(g => g.Ime.Equals(i.Ime)) > 1)){
+                var dionicariTemp = new List<ZseDionicar>();
+                foreach(var dionicar in dionicari)
+                {
+                    if (dionicariTemp.Any(i => i.Ime.Equals(dionicar.Ime))){
+                        dionicariTemp.First(i => i.Ime.Equals(dionicar.Ime)).Postotak += dionicar.Postotak;
+                    }
+                    else
+                    {
+                        dionicariTemp.Add(dionicar);
+                    }
+                }
+                dionicari = dionicariTemp;
+            }
             var j = 0;
             var povijest = html["#dnevna_trgovanja > tbody > tr"].Elements.Select(i =>
             {
                 var listi = i.ChildElements.ToList();
                 try
                 {
-                    Console.WriteLine(j++);
-                    var dateTime = DateTime.Parse(listi[1].InnerText);
+                    var dateTime = DateTime.Parse(listi[1].InnerText, System.Globalization.CultureInfo.GetCultureInfo("hr"));
                     var formatDioniceNumbers = listi[2].FormatDioniceNumbers();
                     var dioniceNumbers = listi[3].FormatDioniceNumbers();
                     var numbers = listi[4].FormatDioniceNumbers();
@@ -106,7 +119,7 @@ namespace Stocks.Crawl
 
             return new DionickoDrustvo
             {
-                Ime = ime,
+                Ime = ime.FixString(),
                 BrojDionica = brojDionica,
                 DatumUpita = DateTime.Now,
                 Dionicars = dionicari,
@@ -120,5 +133,15 @@ namespace Stocks.Crawl
                 Razred = razred,
             };
         }
+
+        public async Task<List<string>> GetAlldionickaDrustvaUrl()
+        {
+            var requestUrl = $"http://www.zse.hr/default.aspx?id=26474";
+            CQ html = await (await Client.GetAsync(requestUrl)).Content.ReadAsStringAsync();
+            var id = html["#dnevna_trgovanja > tbody > tr > td > strong > a"].Elements.ToArray();
+            return id.Select(i => i.Attributes["href"].Split("=").Last()).ToList();
+
+        }
+        
     }
 }

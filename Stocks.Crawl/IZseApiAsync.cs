@@ -6,6 +6,7 @@ namespace Stocks.Crawl
 {
     public interface IZseApiAsync
     {
+        Task<List<string>> GetAlldionickaDrustvaUrl();
         Task<List<DionickoDrustvo>> GetAllDionickaDrustva();
 
         Task<List<ZseDnevnoTrgovanjeDanas>> GetDnevnoTrgovanjeDanas();
